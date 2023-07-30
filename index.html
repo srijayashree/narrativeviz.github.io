@@ -1,52 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple Bar Chart</title>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <title>Scatter Plot with D3</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-    <svg width="400" height="300"></svg>
+    <svg width="500" height="500" id="scatterPlot"></svg>
     <script>
-        // Sample data
-        var data = [10, 30, 25, 40, 15];
+		const data = [
+			{ Make: "Acura", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 35, AverageCityMPG: 25 },
+			{ Make: "Acura", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 28, AverageCityMPG: 21 },
+			{ Make: "Alfa Romeo", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 33, AverageCityMPG: 24 },
+			{ Make: "Alfa Romeo", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 24, AverageCityMPG: 17 },
+			{ Make: "Aston Martin", Fuel: "Gasoline", EngineCylinders: 12, AverageHighwayMPG: 19, AverageCityMPG: 12 },
+			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 30, AverageCityMPG: 23 },
+			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 27, AverageCityMPG: 19 },
+			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 8, AverageHighwayMPG: 26, AverageCityMPG: 17 },
+			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 10, AverageHighwayMPG: 22, AverageCityMPG: 14 }
+		];
 
-        // Create scales for x and y axis
-        var xScale = d3.scaleBand()
-            .domain(["A", "B", "C", "D", "E"])
-            .range([0, 400])
-            .padding(0.1);
+		// Set up the SVG
+		const svg = d3.select("#scatterPlot");
+		const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+		const width = +svg.attr("width") - margin.left - margin.right;
+		const height = +svg.attr("height") - margin.top - margin.bottom;
+		const g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var yScale = d3.scaleLinear()
-            .domain([0, d3.max(data)])
-            .range([300, 0]);
+		// Define the scales
+		const xScale = d3.scaleLinear()
+			.domain([0, d3.max(data, d => d.AverageHighwayMPG)])
+			.range([0, width]);
 
-        // Create the SVG element
-        var svg = d3.select("svg");
+		const yScale = d3.scaleLinear()
+			.domain([0, d3.max(data, d => d.AverageCityMPG)])
+			.range([height, 0]);
 
-        // Create the bars
-        svg.selectAll("rect")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr("x", function(d, i) { return xScale("ABCDE"[i]); })
-            .attr("y", function(d) { return yScale(d); })
-            .attr("width", xScale.bandwidth())
-            .attr("height", function(d) { return 300 - yScale(d); })
-            .attr("fill", "blue");
+		const radiusScale = d3.scaleLinear()
+			.domain([0, d3.max(data, d => d.EngineCylinders)])
+			.range([3, 10]);
 
-        // Create x-axis
-        var xAxis = d3.axisBottom(xScale);
+		// Create the scatter plot
+		g.selectAll(".dot")
+			.data(data)
+			.enter().append("circle")
+			.attr("class", "dot")
+			.attr("cx", d => xScale(d.AverageHighwayMPG))
+			.attr("cy", d => yScale(d.AverageCityMPG))
+			.attr("r", d => radiusScale(d.EngineCylinders))
+			.style("fill", "blue");
 
-        svg.append("g")
-            .attr("transform", "translate(0, 300)")
-            .call(xAxis);
+		// Add X-axis
+		g.append("g")
+			.attr("transform", "translate(0," + height + ")")
+			.call(d3.axisBottom(xScale));
 
-        // Create y-axis
-        var yAxis = d3.axisLeft(yScale)
-            .tickFormat(d3.format("~s"));
+		// Add Y-axis
+		g.append("g")
+			.call(d3.axisLeft(yScale));
 
-        svg.append("g")
-            .call(yAxis);
     </script>
 </body>
 </html>
