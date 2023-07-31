@@ -1,63 +1,395 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Scatter Plot with D3</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Scatter Plot Buttons</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        circle {
+            fill: lightblue;
+            stroke: black;
+        }
+		line {
+            stroke: black;
+            stroke-dasharray: 3 3; /* Make the line dashed */
+        }
+    </style>
 </head>
 <body>
-    <svg width="500" height="500" id="scatterPlot"></svg>
+
+    <h1>Fuel Efficiency</h1>
+    
+    <!-- Button 1 to plot CityMPG vs HighwayMPG -->
+    <button id="button1">1</button>
+
+    <!-- Button 2 to plot CityMPG vs NoofCylinders -->
+    <button id="button2">2</button>
+
+    <!-- Button 3 to plot CityMPG vs HighwayMPG -->
+    <button id="button3">3</button>
+	
+	<button id="button4">Conclusion</button>
+
+    <!-- Container for the scatter plot -->
+    <div id="scatterContainer"></div>
+	<svg width="500" height="500"></svg>
+
     <script>
-		const data = [
-			{ Make: "Acura", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 35, AverageCityMPG: 25 },
-			{ Make: "Acura", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 28, AverageCityMPG: 21 },
-			{ Make: "Alfa Romeo", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 33, AverageCityMPG: 24 },
-			{ Make: "Alfa Romeo", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 24, AverageCityMPG: 17 },
-			{ Make: "Aston Martin", Fuel: "Gasoline", EngineCylinders: 12, AverageHighwayMPG: 19, AverageCityMPG: 12 },
-			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 4, AverageHighwayMPG: 30, AverageCityMPG: 23 },
-			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 6, AverageHighwayMPG: 27, AverageCityMPG: 19 },
-			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 8, AverageHighwayMPG: 26, AverageCityMPG: 17 },
-			{ Make: "Audi", Fuel: "Gasoline", EngineCylinders: 10, AverageHighwayMPG: 22, AverageCityMPG: 14 }
-		];
+        // Function to load data and create scatter plot
+        function createScatterPlot(xData, yData, xLabel, yLabel) {
+            // Load data from CSV file (e.g., using d3.csv)
+            // Create scatter plot using D3 and append it to the scatterContainer
+            // You can use d3.select("#scatterContainer").html("") to clear the container
+			
+			
+        }
 
-		// Set up the SVG
-		const svg = d3.select("#scatterPlot");
-		const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-		const width = +svg.attr("width") - margin.left - margin.right;
-		const height = +svg.attr("height") - margin.top - margin.bottom;
-		const g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        // Click event for Button 1
+        d3.select("#button1").on("click", function() {
+            // Call createScatterPlot function with appropriate data for CityMPG vs HighwayMPG
+            //createScatterPlot("AverageCityMPG", "AverageHighwayMPG", "CityMPG", "HighwayMPG");
+			d3.csv('https://flunky.github.io/cars2017.csv').then(function(data) {
+				// Convert data types
+				data.forEach(function(d) {
+					d.EngineCylinders = +d.EngineCylinders;
+					d.AverageHighwayMPG = +d.AverageHighwayMPG;
+					d.AverageCityMPG = +d.AverageCityMPG;
+				});
 
-		// Define the scales
-		const xScale = d3.scaleLinear()
-			.domain([0, d3.max(data, d => d.AverageHighwayMPG)])
-			.range([0, width]);
+				// Set up SVG width, height, margin, and scales
+				var width = 500;
+				var height = 500;
+				var margin = { top: 50, right: 50, bottom: 50, left: 50 };
+				var svg = d3.select("svg");
+				var x = d3.scaleLog().domain([10, 150]).range([margin.left, width - margin.right]);
+				var y = d3.scaleLog().domain([10, 150]).range([height - margin.bottom, margin.top]);
 
-		const yScale = d3.scaleLinear()
-			.domain([0, d3.max(data, d => d.AverageCityMPG)])
-			.range([height, 0]);
+				// Create D3 scale for circle radius
+				var rScale = d3.scaleLinear()
+					.domain(d3.extent(data, function(d) { return d.EngineCylinders; }))
+					.range([2, 14]);
 
-		const radiusScale = d3.scaleLinear()
-			.domain([0, d3.max(data, d => d.EngineCylinders)])
-			.range([3, 10]);
+				d3.select('svg').html("")
 
-		// Create the scatter plot
-		g.selectAll(".dot")
-			.data(data)
-			.enter().append("circle")
-			.attr("class", "dot")
-			.attr("cx", d => xScale(d.AverageHighwayMPG))
-			.attr("cy", d => yScale(d.AverageCityMPG))
-			.attr("r", d => radiusScale(d.EngineCylinders))
-			.style("fill", "blue");
+				// Append circles to the SVG
+				d3.select('svg')
+					.attr("transform", "translate(50,50)")
+					.selectAll('circle')
+					.data(data)
+					.enter()
+					.append('circle')
+					.attr('cx', function(d) { return x(d.AverageCityMPG); })
+					.attr('cy', function(d) { return y(d.AverageHighwayMPG); })
+					.attr('r', function(d) { return rScale(d.EngineCylinders); });
+					//.attr('r', 3);
+					
+				// Add X-axis
+				svg.append("g")
+					.attr("transform", "translate(0," + (height - margin.bottom) + ")")
+					.call(d3.axisBottom(x).tickValues([10, 20, 50, 150]).tickFormat(d3.format("~s")));
 
-		// Add X-axis
-		g.append("g")
-			.attr("transform", "translate(0," + height + ")")
-			.call(d3.axisBottom(xScale));
+				// Add Y-axis
+				svg.append("g")
+					.attr("transform", "translate(" + margin.left + ",0)")
+					.call(d3.axisLeft(y).tickValues([10, 20, 50, 150]).tickFormat(d3.format("~s")));
 
-		// Add Y-axis
-		g.append("g")
-			.call(d3.axisLeft(yScale));
+				// Add titles to axes
+				svg.append("text")
+					.attr("x", width / 2)
+					.attr("y", height - margin.bottom / 4)
+					.style("text-anchor", "middle")
+					.text("Average City MPG");
+
+				svg.append("text")
+					.attr("x", -height / 2)
+					.attr("y", margin.left / 2)
+					.attr("transform", "rotate(-90)")
+					.style("text-anchor", "middle")
+					.text("Average Highway MPG");
+					
+				// Add title to the chart
+				svg.append("text")
+					.attr("x", width / 2) // X position of the title
+					.attr("y", margin.top / 2)  // Y position of the title
+					.attr("text-anchor", "middle") // Align the title to the center
+					.attr("font-size", "18px") // Font size of the title
+					.text("Scatter Plot of City and Highway MPG"); // Text of the title
+					
+				// Add title to the chart
+				svg.append("text")
+					.attr("x", width / 2) // X position of the title
+					.attr("y", margin.top)  // Y position of the title
+					.attr("text-anchor", "middle") // Align the title to the center
+					.attr("font-size", "18px") // Font size of the title
+					.text("Size of circle proportional to no of cylinders"); // Text of the title
+					
+				// Add a rotated ellipse
+				svg.append("ellipse")
+					.attr("cx", 380) // X position of the ellipse center
+					.attr("cy", 250) // Y position of the ellipse center
+					.attr("rx", 80)  // Horizontal radius of the ellipse
+					.attr("ry", 30)  // Vertical radius of the ellipse
+					.attr("fill", "none") // Fill color of the ellipse
+					.attr("stroke", "green") // Stroke color of the ellipse
+					.attr("stroke-width", 2) // Stroke width of the ellipse
+					.attr("transform", "rotate(-40, 200, 150)"); // Rotate the ellipse by 45 degrees around its center
+
+				// Add a line and text for the comment
+				svg.append("line")
+					.attr("x1", 380) // X position of the start point of the line
+					.attr("y1", 150) // Y position of the start point of the line
+					.attr("x2", 380) // X position of the end point of the line (arrow position)
+					.attr("y2", 250) // Y position of the end point of the line (arrow position)
+					.attr("stroke", "gray") // Stroke color of the line
+					.attr("stroke-width", 2); // Stroke width of the line
+
+				svg.append("text")
+					.attr("x", 300) // X position of the text
+					.attr("y", 280) // Y position of the text
+					.attr("font-size", "15px") // Font size of the text
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("Smallest cylinder has best MPG"); // Text of the //comment					
+
+			
+			});
+        });
+
+        // Click event for Button 2
+        d3.select("#button2").on("click", function() {
+            // Call createScatterPlot function with appropriate data for CityMPG vs NoofCylinders
+            //createScatterPlot("AverageCityMPG", "EngineCylinders", "CityMPG", "NoofCylinders");
+			d3.csv('https://flunky.github.io/cars2017.csv').then(function(data) {
+				// Convert data types
+				data.forEach(function(d) {
+					d.EngineCylinders = +d.EngineCylinders;
+					d.AverageHighwayMPG = +d.AverageHighwayMPG;
+					d.AverageCityMPG = +d.AverageCityMPG;
+				});
+
+				// Set up SVG width, height, margin, and scales
+				var width = 500;
+				var height = 500;
+				var margin = { top: 50, right: 50, bottom: 50, left: 50 };
+				var svg = d3.select("svg");
+				var x = d3.scaleLinear().domain([0, 15]).range([margin.left, width - margin.right]);
+				var y = d3.scaleLog().domain([10, 150]).range([height - margin.bottom, margin.top]);
+
+				// Create D3 scale for circle radius
+				var rScale = d3.scaleLinear()
+					.domain(d3.extent(data, function(d) { return d.EngineCylinders; }))
+					.range([2, 14]);
+
+				d3.select('svg').html("")
+
+				// Append circles to the SVG
+				d3.select('svg')
+					.attr("transform", "translate(50,50)")
+					.selectAll('circle')
+					.data(data)
+					.enter()
+					.append('circle')
+					.attr('cx', function(d) { return x(d.EngineCylinders); })
+					.attr('cy', function(d) { return y(d.AverageHighwayMPG); })
+					//.attr('r', function(d) { return rScale(d.EngineCylinders); });
+					.attr('r', 3);
+					
+				// Add X-axis
+				svg.append("g")
+					.attr("transform", "translate(0," + (height - margin.bottom) + ")")
+					.call(d3.axisBottom(x).tickValues([0, 5, 10, 15]).tickFormat(d3.format("~s")));
+
+				// Add Y-axis
+				svg.append("g")
+					.attr("transform", "translate(" + margin.left + ",0)")
+					.call(d3.axisLeft(y).tickValues([10, 20, 50, 150]).tickFormat(d3.format("~s")));
+
+				// Add titles to axes
+				svg.append("text")
+					.attr("x", width / 2)
+					.attr("y", height - margin.bottom / 4)
+					.style("text-anchor", "middle")
+					.text("No of Engine Cylinders");
+
+				svg.append("text")
+					.attr("x", -height / 2)
+					.attr("y", margin.left / 2)
+					.attr("transform", "rotate(-90)")
+					.style("text-anchor", "middle")
+					.text("Average Highway MPG");
+					
+				// Add title to the chart
+				svg.append("text")
+					.attr("x", width / 2) // X position of the title
+					.attr("y", margin.top / 2)  // Y position of the title
+					.attr("text-anchor", "middle") // Align the title to the center
+					.attr("font-size", "18px") // Font size of the title
+					.text("Plot of MPG vs No of cylinders"); // Text of the title
+					
+				// Add a rotated ellipse
+				svg.append("ellipse")
+					.attr("cx", 250) // X position of the ellipse center
+					.attr("cy", 0) // Y position of the ellipse center
+					.attr("rx", 80)  // Horizontal radius of the ellipse
+					.attr("ry", 30)  // Vertical radius of the ellipse
+					.attr("fill", "none") // Fill color of the ellipse
+					.attr("stroke", "green") // Stroke color of the ellipse
+					.attr("stroke-width", 2) // Stroke width of the ellipse
+					.attr("transform", "rotate(-90, 200, 150)"); // Rotate the ellipse by 45 degrees around its center
+
+				// Add a line and text for the comment
+				svg.append("line")
+					.attr("x1", 80) // X position of the start point of the line
+					.attr("y1", 150) // Y position of the start point of the line
+					.attr("x2", 180) // X position of the end point of the line (arrow position)
+					.attr("y2", 150) // Y position of the end point of the line (arrow position)
+					.attr("stroke", "gray") // Stroke color of the line
+					.attr("stroke-width", 2); // Stroke width of the line
+
+				svg.append("text")
+					.attr("x", 200) // X position of the text
+					.attr("y", 155) // Y position of the text
+					.attr("font-size", "15px") // Font size of the text
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("Smallest cylinder has best MPG"); // Text of the //comment	
+			
+			});			
+        });
+
+        // Click event for Button 3
+        d3.select("#button3").on("click", function() {
+            // Call createScatterPlot function with appropriate data for CityMPG vs HighwayMPG (again)
+            //createScatterPlot("AverageCityMPG", "AverageHighwayMPG", "CityMPG", "HighwayMPG");
+			d3.csv('https://flunky.github.io/cars2017.csv').then(function(data) {
+				// Convert data types
+				data.forEach(function(d) {
+					d.EngineCylinders = +d.EngineCylinders;
+					d.AverageHighwayMPG = +d.AverageHighwayMPG;
+					d.AverageCityMPG = +d.AverageCityMPG;
+				});
+
+				// Set up SVG width, height, margin, and scales
+				var width = 500;
+				var height = 500;
+				var margin = { top: 50, right: 50, bottom: 50, left: 50 };
+				var svg = d3.select("svg");
+				var x = d3.scaleLog().domain([10, 150]).range([margin.left, width - margin.right]);
+				var y = d3.scaleLog().domain([10, 150]).range([height - margin.bottom, margin.top]);
+
+				// Create D3 scale for circle radius
+				var rScale = d3.scaleLinear()
+					.domain(d3.extent(data, function(d) { return d.EngineCylinders; }))
+					.range([2, 14]);
+
+				d3.select('svg').html("")
+
+				// Append circles to the SVG
+				d3.select('svg')
+					.attr("transform", "translate(50,50)")
+					.selectAll('circle')
+					.data(data)
+					.enter()
+					.append('circle')
+					.attr('cx', function(d) { return x(d.AverageCityMPG); })
+					.attr('cy', function(d) { return y(d.AverageHighwayMPG); })
+					//.attr('r', function(d) { return rScale(d.EngineCylinders); });
+					.attr('r', 3);
+					
+				// Add X-axis
+				svg.append("g")
+					.attr("transform", "translate(0," + (height - margin.bottom) + ")")
+					.call(d3.axisBottom(x).tickValues([10, 20, 50, 150]).tickFormat(d3.format("~s")));
+
+				// Add Y-axis
+				svg.append("g")
+					.attr("transform", "translate(" + margin.left + ",0)")
+					.call(d3.axisLeft(y).tickValues([10, 20, 50, 150]).tickFormat(d3.format("~s")));
+
+				// Add titles to axes
+				svg.append("text")
+					.attr("x", width / 2)
+					.attr("y", height - margin.bottom / 4)
+					.style("text-anchor", "middle")
+					.text("Average City MPG");
+
+				svg.append("text")
+					.attr("x", -height / 2)
+					.attr("y", margin.left / 2)
+					.attr("transform", "rotate(-90)")
+					.style("text-anchor", "middle")
+					.text("Average Highway MPG");
+					
+				// Add the dashed line x = y
+				svg.append("line")
+					.attr("class", "line")
+					.attr("x1", x(10))
+					.attr("y1", y(10))
+					.attr("x2", x(150))
+					.attr("y2", y(150));
+
+				// Add title to the chart
+				svg.append("text")
+					.attr("x", width / 2) // X position of the title
+					.attr("y", margin.top / 2)  // Y position of the title
+					.attr("text-anchor", "middle") // Align the title to the center
+					.attr("font-size", "18px") // Font size of the title
+					.text("Scatter Plot of City and Highway MPG with line of equal MPG"); // Text of the title	
+
+				svg.append("text")
+					.attr("x", 50) // X position of the text
+					.attr("y", 155) // Y position of the text
+					.attr("font-size", "15px") // Font size of the text
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("Gasoline vehicles have better highway MPG"); // Text of the //comment
+
+				svg.append("text")
+					.attr("x", 260) // X position of the text
+					.attr("y", 255) // Y position of the text
+					.attr("font-size", "15px") // Font size of the text
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("Electric vehicles have better city MPG"); // Text of the //comment
+
+			
+			});
+
+        });
+		
+        // Click event for Button 4
+        d3.select("#button4").on("click", function() {
+            // Call createScatterPlot function with appropriate data for CityMPG vs HighwayMPG (again)
+            //createScatterPlot("AverageCityMPG", "AverageHighwayMPG", "CityMPG", "HighwayMPG");
+			d3.csv('https://flunky.github.io/cars2017.csv').then(function(data) {
+
+				// Set up SVG width, height, margin, and scales
+				var width = 500;
+				var height = 500;
+				var margin = { top: 50, right: 50, bottom: 50, left: 50 };
+				var svg = d3.select("svg");
+				var x = d3.scaleLog().domain([10, 150]).range([margin.left, width - margin.right]);
+				var y = d3.scaleLog().domain([10, 150]).range([height - margin.bottom, margin.top]);
+				
+				d3.select('svg').html("")
+
+				svg.append("text")
+					.attr("x", 20) // X position of the text
+					.attr("y", 255) // Y position of the text
+					.attr("font-size", "20px") // Font size of the text
+					.attr("font-family", "Verdana, Geneva, sans-serif") // Font family of the title
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("Electric vehicles offer the best fuel effciency,"); // Text of the //comment
+					
+				svg.append("text")
+					.attr("x", 60) // X position of the text
+					.attr("y", 275) // Y position of the text
+					.attr("font-size", "20px") // Font size of the text
+					.attr("font-family", "Verdana, Geneva, sans-serif") // Font family of the text
+					//.attr("text-anchor", "middle") // Align the title to the center
+					.text("especially for city driving"); // Text of the //comment
+
+			
+			});
+
+        });
 
     </script>
+
 </body>
 </html>
